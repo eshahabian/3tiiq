@@ -38,6 +38,10 @@
     #yes{z-index:2;padding:15px 30px;border-radius:18px;color:#fff;background:linear-gradient(135deg,var(--rose),var(--rose2));box-shadow:0 12px 26px rgba(233,67,115,.28)}
     #yes:hover{box-shadow:0 16px 34px rgba(233,67,115,.36)}
     #no{min-width:72px;padding:14px 25px;border:1px solid var(--line);border-radius:18px;color:var(--muted);background:rgba(255,255,255,.75)}
+    #who{padding:14px 22px;border:1px solid rgba(233,67,115,.18);border-radius:18px;color:var(--ink);background:rgba(255,242,247,.92);box-shadow:0 8px 20px rgba(145,47,80,.08)}
+    .who-reveal{min-height:82px;display:grid;place-items:center;margin-top:5px;overflow:visible}
+    #whoHand{display:inline-block;font-size:44px;line-height:1;opacity:0;transform:scale(.45);transform-origin:center;filter:drop-shadow(0 8px 12px rgba(93,35,55,.18));transition:transform .22s cubic-bezier(.2,.8,.2,1),opacity .2s ease}
+    #whoHand.show{opacity:1}
     .shake{animation:shake .28s ease}
     .bouquet{font-size:78px;filter:drop-shadow(0 15px 16px rgba(150,50,82,.16));animation:float 2.5s ease-in-out infinite}
     .thanks{max-width:460px;margin:12px auto 0;font-size:clamp(16px,4vw,19px);line-height:2;color:#684253}
@@ -66,18 +70,22 @@
     <section id="question" class="view">
       <div class="heart" aria-hidden="true">❤️</div>
       <p class="eyebrow">یه دعوت کوچیک برای یه آدم خیلی خاص</p>
-      <h1>فکر میکنی وقتشه یه دورهمی دو نفره برای صبحانه،ناهار یا شام ترتیب بدم ؟</h1>
+      <h1>به نظرت میتونم اون مخاطب خاص را به صبحانه ،ناهار یا شام دعوت کنم ؟</h1>
       <p id="hint" class="hint" aria-live="polite">منتظر جوابتم 😌</p>
       <div class="actions">
         <button id="yes" type="button">آره 😍</button>
         <button id="no" type="button">نه 🙈</button>
+        <button id="who" type="button">مخاطب خاص کیه؟</button>
+      </div>
+      <div class="who-reveal" aria-live="polite">
+        <span id="whoHand" role="img" aria-label="خودت">🫵</span>
       </div>
     </section>
 
     <section id="accepted" class="view hidden" aria-live="polite">
       <div class="bouquet" aria-hidden="true">💐</div>
-      <h2> می‌دونستم قبول میکنی! 😍</h2>
-      <p class="thanks">ممنونم ❤️ قول میدم یه شب خیلی قشنگ برات بسازم. حالا فقط مونده آماده شی که بریم یه قرار دونفره‌ی دوست‌داشتنی 🌹</p>
+      <h2>می‌دونستم! 😍</h2>
+      <p class="thanks">مرسی که قبول کردی ❤️ قول میدم یه شب خیلی قشنگ برات بسازم. حالا فقط مونده آماده شی که بریم یه قرار دونفره‌ی دوست‌داشتنی 🌹</p>
       <div class="flowers" aria-hidden="true">🌷 ❤️ 🌷 ❤️ 🌷</div>
       <p class="ask-time">می‌دونم وقتت خیلی پر هستش؛ روز . ساعتش رو خودت بگو</p>
       <p class="signature">منتظر قرار قشنگمونم ✨</p>
@@ -91,9 +99,12 @@
     const accepted=document.querySelector('#accepted');
     const yes=document.querySelector('#yes');
     const no=document.querySelector('#no');
+    const who=document.querySelector('#who');
+    const whoHand=document.querySelector('#whoHand');
     const hint=document.querySelector('#hint');
     const texts=['مطمئنی؟ 😏','یه بار دیگه فکر کن 😌','فکر کنم اشتباهی روی نه زدی 😂','آره داره بزرگ‌تر میشه‌ها 😍','بازم نه؟ 🥺','من هنوز منتظرم 😄'];
     let count=0;
+    let whoCount=0;
 
     yes.addEventListener('click',()=>{
       question.classList.add('hidden');
@@ -113,6 +124,14 @@
       no.classList.remove('shake');
       void no.offsetWidth;
       no.classList.add('shake');
+    });
+
+    who.addEventListener('click',()=>{
+      whoCount++;
+      const maxHandScale=window.innerWidth<520?2.15:3.15;
+      const handScale=Math.min(.75+whoCount*.34,maxHandScale);
+      whoHand.classList.add('show');
+      whoHand.style.transform=`scale(${handScale})`;
     });
   </script>
 </body>
