@@ -99,7 +99,8 @@
         <input type="hidden" name="_template" value="table">
         <textarea name="پیام" placeholder="هرچی میخوای بهم بگو ...." aria-label="پیام برای عماد" required></textarea>
         <button class="send-message" type="submit">ارسال پیام 💌</button>
-        <p class="form-note">پیامت مستقیم برای عماد ایمیل میشه.</p>
+        <p class="form-note">با دکمه بالا پیام ارسال می‌شود. اگر سرویس خطا داد، از ارسال با برنامه ایمیل استفاده کن.</p>
+        <a id="emailFallback" href="mailto:eshahabian@gmail.com" style="display:block;margin-top:12px;color:var(--rose);font-size:14px">ارسال با برنامه ایمیل 💌</a>
       </form>
       <p class="signature">منتظر قرار قشنگمونم ✨</p>
     </section>
@@ -108,6 +109,18 @@
   </div>
 
   <script>
+    const messageForm=document.querySelector('.message-form');
+    const messageBox=messageForm.querySelector('textarea');
+    const emailFallback=document.querySelector('#emailFallback');
+    const draftKey='invitation-message-draft';
+    try { messageBox.value=sessionStorage.getItem(draftKey)||''; } catch (_) {}
+    function saveMessage(){
+      try { sessionStorage.setItem(draftKey,messageBox.value); } catch (_) {}
+      emailFallback.href='mailto:eshahabian@gmail.com?subject='+encodeURIComponent('پیام از دعوت‌نامه')+'&body='+encodeURIComponent(messageBox.value);
+    }
+    messageBox.addEventListener('input',saveMessage);
+    messageForm.addEventListener('submit',saveMessage);
+    saveMessage();
     const question=document.querySelector('#question');
     const accepted=document.querySelector('#accepted');
     const yes=document.querySelector('#yes');
