@@ -94,13 +94,14 @@
       <p class="thanks">مرسی که قبول کردی ❤️ قول میدم یه شب خیلی قشنگ برات بسازم. حالا فقط مونده آماده شی که بریم یه قرار دونفره‌ی دوست‌داشتنی 🌹</p>
       <div class="flowers" aria-hidden="true">🌷 ❤️ 🌷 ❤️ 🌷</div>
       <p class="ask-time">می‌دونم وقتت خیلی پر هستش؛ روز . ساعتش رو خودت بگو</p>
-      <form class="message-form" action="mailto:eshahabian@gmail.com" method="GET">
+      <form class="message-form" action="https://formsubmit.co/ajax/eshahabian@gmail.com" method="POST">
         
         
         <textarea name="پیام" placeholder="هرچی میخوای بهم بگو ...." aria-label="پیام برای عماد" required></textarea>
-        <button class="send-message" type="submit">باز کردن ایمیل و ارسال پیام 💌</button>
-        <p class="form-note">متن در برنامه ایمیل باز می‌شود؛ برای فرستادن پیام، دکمه ارسال همان برنامه را بزن.</p>
-        <a id="emailFallback" href="mailto:eshahabian@gmail.com" style="display:block;margin-top:12px;color:var(--rose);font-size:14px">ارسال با برنامه ایمیل 💌</a>
+        <button class="send-message" type="submit">ارسال پیام 💌</button>
+        <p class="form-note">پیامت از همین صفحه برای عماد ارسال می‌شود.</p>
+        <p id="sendStatus" role="status" aria-live="polite" class="form-note"></p>
+        <a id="emailFallback" hidden href="mailto:eshahabian@gmail.com" style="display:block;margin-top:12px;color:var(--rose);font-size:14px">ارسال با برنامه ایمیل 💌</a>
       </form>
       <p class="signature">منتظر قرار قشنگمونم ✨</p>
     </section>
@@ -119,11 +120,39 @@
       emailFallback.href='mailto:eshahabian@gmail.com?subject='+encodeURIComponent('پیام از دعوت‌نامه')+'&body='+encodeURIComponent(messageBox.value);
     }
     messageBox.addEventListener('input',saveMessage);
-    messageForm.addEventListener('submit',(event)=>{
+    messageForm.addEventListener('submit',async(event)=>{
       event.preventDefault();
-      if(!messageBox.value.trim()){messageBox.focus();return;}
+      const message=messageBox.value.trim();
+      if(!message){messageBox.focus();return;}
+      const sendButton=messageForm.querySelector('.send-message');
+      const status=document.querySelector('#sendStatus');
+      if(sendButton.disabled)return;
       saveMessage();
-      window.location.href=emailFallback.href;
+      sendButton.disabled=true;
+      sendButton.textContent='در حال ارسال…';
+      status.textContent='';
+      emailFallback.hidden=true;
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),20000);
+      try {
+        const response=await fetch(messageForm.action,{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Accept':'application/json'},
+          body:JSON.stringify({message,_subject:'پیام جدید از دعوت‌نامه',_template:'table',_url:window.location.href}),
+          signal:controller.signal
+        });
+        const data=await response.json();
+        if(!response.ok || !(data.success===true || data.success==='true'))throw new Error('Submission failed');
+        status.textContent='پیامت توسط سرویس ثبت شد 💌';
+        sendButton.textContent='ثبت شد 💌';
+      } catch(error) {
+        status.textContent='ارسال تأیید نشد؛ متن پیامت محفوظ است. دوباره امتحان کن یا از لینک ایمیل زیر استفاده کن.';
+        sendButton.textContent='تلاش دوباره 💌';
+        emailFallback.hidden=false;
+      } finally {
+        clearTimeout(timeout);
+        sendButton.disabled=false;
+      }
     });
     saveMessage();
     const question=document.querySelector('#question');
