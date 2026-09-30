@@ -94,12 +94,14 @@
       <p class="thanks">مرسی که قبول کردی ❤️ قول میدم یه شب خیلی قشنگ برات بسازم. حالا فقط مونده آماده شی که بریم یه قرار دونفره‌ی دوست‌داشتنی 🌹</p>
       <div class="flowers" aria-hidden="true">🌷 ❤️ 🌷 ❤️ 🌷</div>
       <p class="ask-time">می‌دونم وقتت خیلی پر هستش؛ روز . ساعتش رو خودت بگو</p>
-      <form class="message-form" action="https://formsubmit.co/ajax/eshahabian@gmail.com" method="POST">
+      <form class="message-form" action="https://formsubmit.co/eshahabian@gmail.com" method="POST">
+        <input type="hidden" name="_subject" value="پیام جدید از دعوت‌نامه">
+        <input type="hidden" name="_template" value="table">
         
         
         <textarea name="پیام" placeholder="هرچی میخوای بهم بگو ...." aria-label="پیام برای عماد" required></textarea>
         <button class="send-message" type="submit">ارسال پیام 💌</button>
-        <p class="form-note">پیامت از همین صفحه برای عماد ارسال می‌شود.</p>
+        <p class="form-note">با زدن ارسال، پیام برای عماد فرستاده می‌شود.</p>
         <p id="sendStatus" role="status" aria-live="polite" class="form-note"></p>
         <a id="emailFallback" hidden href="mailto:eshahabian@gmail.com" style="display:block;margin-top:12px;color:var(--rose);font-size:14px">ارسال با برنامه ایمیل 💌</a>
       </form>
@@ -119,62 +121,9 @@
       try { sessionStorage.setItem(draftKey,messageBox.value); } catch (_) {}
       emailFallback.href='mailto:eshahabian@gmail.com?subject='+encodeURIComponent('پیام از دعوت‌نامه')+'&body='+encodeURIComponent(messageBox.value);
     }
-    let lastSubmittedMessage='';
-    messageBox.addEventListener('input',()=>{
+    messageBox.addEventListener('input',saveMessage);
+    messageForm.addEventListener('submit',()=>{
       saveMessage();
-      const button=messageForm.querySelector('.send-message');
-      if(button.dataset.sent==='true'){
-        button.dataset.sent='';
-        button.disabled=false;
-        button.textContent='ارسال پیام 💌';
-        document.querySelector('#sendStatus').textContent='';
-      }
-    });
-    messageForm.addEventListener('submit',async(event)=>{
-      event.preventDefault();
-      const message=messageBox.value.trim();
-      if(!message){messageBox.focus();return;}
-      const sendButton=messageForm.querySelector('.send-message');
-      const status=document.querySelector('#sendStatus');
-      if(sendButton.disabled || message===lastSubmittedMessage)return;
-      let submitted=false;
-      saveMessage();
-      sendButton.disabled=true;
-      sendButton.textContent='در حال ارسال…';
-      status.textContent='';
-      emailFallback.hidden=true;
-      const controller=new AbortController();
-      const timeout=setTimeout(()=>controller.abort(),20000);
-      try {
-        const response=await fetch(messageForm.action,{
-          method:'POST',
-          headers:{'Content-Type':'application/json','Accept':'application/json'},
-          body:JSON.stringify({message,_subject:'پیام جدید از دعوت‌نامه',_template:'table',_url:window.location.href}),
-          signal:controller.signal
-        });
-        if(!response.ok)throw new Error('HTTP '+response.status);
-        const data=await response.json();
-        if(!(data.success===true || data.success==='true'))throw new Error('Service rejected submission');
-        submitted=true;
-        lastSubmittedMessage=message;
-        sendButton.dataset.sent='true';
-        try { sessionStorage.removeItem(draftKey); } catch (_) {}
-        status.textContent='پیامت توسط سرویس ثبت شد 💌';
-        sendButton.textContent='ثبت شد 💌';
-      } catch(error) {
-        if(error.message==='HTTP 500'){
-          status.textContent='سرویس ارسال خطای ۵۰۰ داد؛ تحویل پیام تأیید نشد و متن پیامت محفوظ است.';
-        }else if(error.name==='AbortError'){
-          status.textContent='سرویس به‌موقع پاسخ نداد؛ تحویل پیام تأیید نشد و متن پیامت محفوظ است.';
-        }else{
-          status.textContent='ارسال تأیید نشد؛ اتصال یا سرویس ارسال مشکل دارد. متن پیامت محفوظ است.';
-        }
-        sendButton.textContent='تلاش دوباره 💌';
-        emailFallback.hidden=false;
-      } finally {
-        clearTimeout(timeout);
-        sendButton.disabled=submitted;
-      }
     });
     saveMessage();
     const question=document.querySelector('#question');
