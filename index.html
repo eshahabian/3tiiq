@@ -94,12 +94,12 @@
       <p class="thanks">مرسی که قبول کردی ❤️ قول میدم یه شب خیلی قشنگ برات بسازم. حالا فقط مونده آماده شی که بریم یه قرار دونفره‌ی دوست‌داشتنی 🌹</p>
       <div class="flowers" aria-hidden="true">🌷 ❤️ 🌷 ❤️ 🌷</div>
       <p class="ask-time">می‌دونم وقتت خیلی پر هستش؛ روز . ساعتش رو خودت بگو</p>
-      <form class="message-form" action="https://formsubmit.co/eshahabian@gmail.com" method="POST">
-        <input type="hidden" name="_subject" value="پیام جدید از دعوت‌نامه">
-        <input type="hidden" name="_template" value="table">
+      <form class="message-form" action="mailto:eshahabian@gmail.com" method="GET">
+        
+        
         <textarea name="پیام" placeholder="هرچی میخوای بهم بگو ...." aria-label="پیام برای عماد" required></textarea>
-        <button class="send-message" type="submit">ارسال پیام 💌</button>
-        <p class="form-note">با دکمه بالا پیام ارسال می‌شود. اگر سرویس خطا داد، از ارسال با برنامه ایمیل استفاده کن.</p>
+        <button class="send-message" type="submit">باز کردن ایمیل و ارسال پیام 💌</button>
+        <p class="form-note">متن در برنامه ایمیل باز می‌شود؛ برای فرستادن پیام، دکمه ارسال همان برنامه را بزن.</p>
         <a id="emailFallback" href="mailto:eshahabian@gmail.com" style="display:block;margin-top:12px;color:var(--rose);font-size:14px">ارسال با برنامه ایمیل 💌</a>
       </form>
       <p class="signature">منتظر قرار قشنگمونم ✨</p>
@@ -119,7 +119,12 @@
       emailFallback.href='mailto:eshahabian@gmail.com?subject='+encodeURIComponent('پیام از دعوت‌نامه')+'&body='+encodeURIComponent(messageBox.value);
     }
     messageBox.addEventListener('input',saveMessage);
-    messageForm.addEventListener('submit',saveMessage);
+    messageForm.addEventListener('submit',(event)=>{
+      event.preventDefault();
+      if(!messageBox.value.trim()){messageBox.focus();return;}
+      saveMessage();
+      window.location.href=emailFallback.href;
+    });
     saveMessage();
     const question=document.querySelector('#question');
     const accepted=document.querySelector('#accepted');
