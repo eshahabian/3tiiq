@@ -53,7 +53,7 @@
     .message-form textarea::placeholder{color:#a47c8b}
     .send-message{width:100%;margin-top:10px;padding:13px 18px;border-radius:15px;color:#fff;background:linear-gradient(135deg,var(--rose),var(--rose2));box-shadow:0 10px 22px rgba(233,67,115,.22)}
     .form-note{margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.7}
-    .send-alt{display:block;margin-top:12px;color:var(--rose);font-size:13px;font-weight:800;text-decoration:none}
+    .send-message:disabled{opacity:.7;cursor:wait}
     .signature{margin-top:18px;color:#a97b8d;font-size:12px}
     @keyframes enter{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
     @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
@@ -96,11 +96,15 @@
       <div class="flowers" aria-hidden="true">🌷 ❤️ 🌷 ❤️ 🌷</div>
       <p class="ask-time">می‌دونم وقتت خیلی پر هستش؛ روز . ساعتش رو خودت بگو</p>
       <form class="message-form" id="messageForm" novalidate>
+        <input type="hidden" name="access_key" value="8c9f95dcfa604ac09bd38c2c035a4544">
+        <input type="hidden" name="subject" value="پیام از دعوت‌نامه">
+        <input type="hidden" name="from_name" value="دعوت‌نامه">
+        <input type="hidden" name="__ajax__" value="true">
+        <input type="text" name="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
         <textarea name="پیام" id="messageBox" placeholder="هرچی میخوای بهم بگو ...." aria-label="پیام برای عماد" required></textarea>
         <button class="send-message" type="submit">ارسال پیام 💌</button>
-        <p class="form-note">با زدن ارسال، جیمیل باز می‌شود و پیام آماده است؛ فقط Send را بزن.</p>
+        <p class="form-note">پیامت مستقیم برای عماد ایمیل می‌شود.</p>
         <p id="sendStatus" role="status" aria-live="polite" class="form-note"></p>
-        <a id="mailtoFallback" class="send-alt" href="mailto:eshahabian@gmail.com">اگر جیمیل باز نشد، با برنامه ایمیل بفرست</a>
       </form>
       <p class="signature">منتظر قرار قشنگمونم ✨</p>
     </section>
@@ -111,26 +115,14 @@
   <script>
     const messageForm=document.querySelector('#messageForm');
     const messageBox=document.querySelector('#messageBox');
-    const mailtoFallback=document.querySelector('#mailtoFallback');
     const sendStatus=document.querySelector('#sendStatus');
+    const sendButton=messageForm.querySelector('.send-message');
     const draftKey='invitation-message-draft';
-    const mailTo='eshahabian@gmail.com';
-    const subject='پیام از دعوت‌نامه';
     try { messageBox.value=sessionStorage.getItem(draftKey)||''; } catch (_) {}
-    function gmailComposeUrl(text){
-      return 'https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(mailTo)
-        +'&su='+encodeURIComponent(subject)
-        +'&body='+encodeURIComponent(text);
-    }
-    function mailtoUrl(text){
-      return 'mailto:'+mailTo+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(text);
-    }
-    function syncLinks(){
+    messageBox.addEventListener('input',()=>{
       try { sessionStorage.setItem(draftKey,messageBox.value); } catch (_) {}
-      mailtoFallback.href=mailtoUrl(messageBox.value);
-    }
-    messageBox.addEventListener('input',syncLinks);
-    messageForm.addEventListener('submit',(event)=>{
+    });
+    messageForm.addEventListener('submit',async (event)=>{
       event.preventDefault();
       const text=messageBox.value.trim();
       if(!text){
@@ -138,17 +130,27 @@
         messageBox.focus();
         return;
       }
-      syncLinks();
-      const compose=gmailComposeUrl(text);
-      const popup=window.open(compose,'_blank','noopener');
-      if(popup){
-        sendStatus.textContent='جیمیل باز شد. فقط دکمه Send را بزن تا پیام به عماد برسد 💌';
-      } else {
-        window.location.href=mailtoUrl(text);
-        sendStatus.textContent='برنامه ایمیل باز می‌شود؛ Send را بزن تا پیام برسد.';
+      sendButton.disabled=true;
+      sendStatus.textContent='در حال ارسال...';
+      try {
+        const response=await fetch('https://formly.email/submit',{
+          method:'POST',
+          headers:{Accept:'application/json'},
+          body:new FormData(messageForm)
+        });
+        const result=await response.json();
+        if(result.success){
+          sendStatus.textContent='پیامت برای عماد ارسال شد ❤️';
+          messageBox.value='';
+          try { sessionStorage.removeItem(draftKey); } catch (_) {}
+        } else {
+          sendStatus.textContent=result.message||'ارسال نشد. یک بار دیگر بزن.';
+        }
+      } catch (_) {
+        sendStatus.textContent='ارسال نشد. یک بار دیگر بزن.';
       }
+      sendButton.disabled=false;
     });
-    syncLinks();
     const question=document.querySelector('#question');
     const accepted=document.querySelector('#accepted');
     const yes=document.querySelector('#yes');
